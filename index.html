@@ -23,7 +23,7 @@
     .question {
       margin-bottom: 2rem;
     }
-    .answers button, .retry-btn, .answers input[type=checkbox] + label {
+    .answers button, .retry-btn {
       display: block;
       margin: 0.5rem 0;
       padding: 0.5rem;
@@ -31,8 +31,18 @@
       font-size: 1rem;
       cursor: pointer;
     }
-    .answers input[type=checkbox] {
-      margin-right: 0.5rem;
+    .multi-option {
+      margin-bottom: 0.75rem;
+      padding: 0.5rem;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      background-color: #f9f9f9;
+      display: flex;
+      align-items: center;
+    }
+    .multi-option input[type=checkbox] {
+      margin-right: 0.75rem;
+      transform: scale(1.25);
     }
     .result {
       display: none;
@@ -196,16 +206,14 @@
       if (q.multi) {
         q.a.forEach(answer => {
           const id = `${answer}-${currentQ}`;
+          const wrapper = document.createElement("label");
+          wrapper.className = "multi-option";
           const checkbox = document.createElement("input");
           checkbox.type = "checkbox";
           checkbox.id = id;
           checkbox.value = answer;
-          const label = document.createElement("label");
-          label.htmlFor = id;
-          label.textContent = answer;
-          const wrapper = document.createElement("div");
           wrapper.appendChild(checkbox);
-          wrapper.appendChild(label);
+          wrapper.appendChild(document.createTextNode(answer));
           answersDiv.appendChild(wrapper);
         });
         const nextBtn = document.createElement("button");
@@ -253,5 +261,4 @@
   </script>
 </body>
 </html>
-
 
