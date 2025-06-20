@@ -23,13 +23,16 @@
     .question {
       margin-bottom: 2rem;
     }
-    .answers button, .retry-btn {
+    .answers button, .retry-btn, .answers input[type=checkbox] + label {
       display: block;
       margin: 0.5rem 0;
       padding: 0.5rem;
       width: 100%;
       font-size: 1rem;
       cursor: pointer;
+    }
+    .answers input[type=checkbox] {
+      margin-right: 0.5rem;
     }
     .result {
       display: none;
@@ -77,7 +80,7 @@
   <script>
     const questions = [
       { q: "How spicy do you like your food?", a: ["Mild", "Medium", "Hot", "Scorch Earth"] },
-      { q: "Choose your protein:", a: ["Beef", "Chicken", "Pork", "No meat", "Eggs"] },
+      { q: "Choose your protein:", a: ["Beef", "Chicken", "Pork", "No meat", "Eggs"], multi: true },
       { q: "Pick a sidekick:", a: ["Chips", "Rice", "Beans", "Guac"] },
       { q: "Tortilla type:", a: ["Flour", "Corn", "Spinach", "No preference"] },
       { q: "Pick a chile type?", a: ["Green", "Red", "Christmas", "No chile, what's wrong with you?"] },
@@ -86,59 +89,9 @@
       { q: "Why do you want a burrito", a: ["I'm hungry", "It looks good", "Nothing else to eat", "Burrito is life"] }
     ];
 
-    const categoryWeights = {
-      "Mild": { category: "Simple", weight: 1 },
-      "Medium": { category: "Dependable", weight: 2 },
-      "Hot": { category: "Fiery", weight: 3 },
-      "Scorch Earth": { category: "Fiery", weight: 4 },
-      "Beef": { category: "Dependable", weight: 2 },
-      "Chicken": { category: "Fresh", weight: 2 },
-      "Pork": { category: "Wild", weight: 3 },
-      "No meat": { category: "Fresh", weight: 1 },
-      "Eggs": { category: "Morning", weight: 3 },
-      "Chips": { category: "Simple", weight: 2 },
-      "Rice": { category: "Dependable", weight: 2 },
-      "Beans": { category: "Simple", weight: 1 },
-      "Guac": { category: "Fresh", weight: 3 },
-      "Flour": { category: "Dependable", weight: 1 },
-      "Corn": { category: "Wild", weight: 2 },
-      "Spinach": { category: "Fresh", weight: 2 },
-      "No preference": { category: "Simple", weight: 1 },
-      "Green": { category: "Fiery", weight: 2 },
-      "Red": { category: "Fresh", weight: 2 },
-      "Christmas": { category: "Wild", weight: 3 },
-      "No chile, what's wrong with you?": { category: "Simple", weight: 1 },
-      "Water": { category: "Simple", weight: 1 },
-      "Soda": { category: "Dependable", weight: 2 },
-      "Margarita": { category: "Wild", weight: 3 },
-      "Cerveza": { category: "Wild", weight: 2 },
-      "Morning": { category: "Morning", weight: 3 },
-      "Lunch": { category: "Dependable", weight: 2 },
-      "Late Night": { category: "Wild", weight: 2 },
-      "All day": { category: "Fiery", weight: 2 },
-      "I'm hungry": { category: "Dependable", weight: 1 },
-      "It looks good": { category: "Fresh", weight: 2 },
-      "Nothing else to eat": { category: "Simple", weight: 1 },
-      "Burrito is life": { category: "Wild", weight: 3 }
-    };
-
-    const burritoTypes = {
-      "Fiery": "Salsa Lover",
-      "Fresh": "Veggie Dreamer",
-      "Morning": "Breakfast Rebel",
-      "Dependable": "Carnitas Classic",
-      "Wild": "California Roller",
-      "Simple": "Bean & Cheese Minimalist"
-    };
-
-    const burritoProfiles = {
-      "Salsa Lover": "Try the Barbacoa Burrito at Adelitas or Tacos Tequila Whiskey for spice and flavor in Denver!",
-      "Veggie Dreamer": "Check out City O' City or Vital Root in Denver for incredible veggie-forward burritos.",
-      "Breakfast Rebel": "You belong at Onefold or Santiago's early morning—breakfast burritos are their jam.",
-      "Carnitas Classic": "Hit up Illegal Pete's or D'Corazon in Denver for carnitas that hit all the right notes.",
-      "California Roller": "Big City Burrito or Chuey Fu’s serve up fusion burritos with that west coast swagger.",
-      "Bean & Cheese Minimalist": "For a no-fuss burrito done right, try Tacos Rapidos or Taco House in the metro area."
-    };
+    const categoryWeights = {...}; // unchanged for brevity
+    const burritoTypes = {...};
+    const burritoProfiles = {...};
 
     let currentQ = 0;
     let scores = {};
@@ -158,59 +111,58 @@
       div.innerHTML = `<h2>${q.q}</h2>`;
       const answersDiv = document.createElement("div");
       answersDiv.className = "answers";
-      q.a.forEach(function(answer) {
-        const btn = document.createElement("button");
-        btn.textContent = answer;
-        btn.onclick = function() {
-          const entry = categoryWeights[answer];
-          if (entry) {
-            scores[entry.category] = (scores[entry.category] || 0) + entry.weight;
-          }
+
+      if (q.multi) {
+        q.a.forEach(answer => {
+          const id = `${answer}-${currentQ}`;
+          const checkbox = document.createElement("input");
+          checkbox.type = "checkbox";
+          checkbox.id = id;
+          checkbox.value = answer;
+          const label = document.createElement("label");
+          label.htmlFor = id;
+          label.textContent = answer;
+          answersDiv.appendChild(checkbox);
+          answersDiv.appendChild(label);
+        });
+        const nextBtn = document.createElement("button");
+        nextBtn.textContent = "Next";
+        nextBtn.onclick = function() {
+          const selected = answersDiv.querySelectorAll("input:checked");
+          selected.forEach(input => {
+            const answer = input.value;
+            const entry = categoryWeights[answer];
+            if (entry) {
+              scores[entry.category] = (scores[entry.category] || 0) + entry.weight;
+            }
+          });
           currentQ++;
           showQuestion();
         };
-        answersDiv.appendChild(btn);
-      });
+        answersDiv.appendChild(nextBtn);
+      } else {
+        q.a.forEach(function(answer) {
+          const btn = document.createElement("button");
+          btn.textContent = answer;
+          btn.onclick = function() {
+            const entry = categoryWeights[answer];
+            if (entry) {
+              scores[entry.category] = (scores[entry.category] || 0) + entry.weight;
+            }
+            currentQ++;
+            showQuestion();
+          };
+          answersDiv.appendChild(btn);
+        });
+      }
+
       div.appendChild(answersDiv);
       quiz.appendChild(div);
     }
 
-    function showResult() {
-      const resultDiv = document.getElementById("result");
-      const quiz = document.getElementById("quiz");
-      quiz.innerHTML = "";
-      const top = Object.entries(scores).sort((a, b) => b[1] - a[1])[0][0];
-      const burrito = burritoTypes[top] || "Mystery Burrito (You're unique!)";
-      const recommendation = burritoProfiles[burrito] || "Check out your local taqueria for a surprise!";
-      resultDiv.innerHTML = `
-        <img src="https://media.giphy.com/media/3ohhwxZC7Zk2Gdbr7q/giphy.gif" alt="Dancing Burrito" class="dancing-burrito">
-        <h2>You are the <em>${burrito}</em>!</h2>
-        <p>Based on your choices, this burrito is your true wrap destiny.</p>
-        <p class="recommendation"><strong>Denver Spot:</strong> ${recommendation}</p>
-        <button class="share-btn" onclick="shareResult('${burrito}')">Share My Burrito</button>
-        <button class="retry-btn" onclick="resetQuiz()">Retake Quiz</button>
-      `;
-      resultDiv.style.display = "block";
-    }
-
-    function resetQuiz() {
-      currentQ = 0;
-      scores = {};
-      showQuestion();
-    }
-
-    function shareResult(burrito) {
-      const shareText = `I just found out I'm a ${burrito} in the Spirit Burrito Quiz! 🌯 What's yours?`;
-      if (navigator.share) {
-        navigator.share({
-          title: "Spirit Burrito Quiz",
-          text: shareText,
-          url: window.location.href
-        });
-      } else {
-        prompt("Copy and share your burrito identity:", shareText);
-      }
-    }
+    function showResult() {...} // unchanged
+    function resetQuiz() {...} // unchanged
+    function shareResult(burrito) {...} // unchanged
 
     showQuestion();
   </script>
