@@ -89,9 +89,9 @@
       { q: "Why do you want a burrito", a: ["I'm hungry", "It looks good", "Nothing else to eat", "Burrito is life"] }
     ];
 
-    const categoryWeights = {...}; // unchanged for brevity
-    const burritoTypes = {...};
-    const burritoProfiles = {...};
+    const categoryWeights = {};
+    const burritoTypes = {};
+    const burritoProfiles = {};
 
     let currentQ = 0;
     let scores = {};
@@ -102,7 +102,7 @@
       resultDiv.style.display = "none";
       quiz.innerHTML = "";
       if (currentQ >= questions.length) {
-        showResult();
+        if (typeof showResult === 'function') showResult();
         return;
       }
       const q = questions[currentQ];
@@ -122,8 +122,10 @@
           const label = document.createElement("label");
           label.htmlFor = id;
           label.textContent = answer;
-          answersDiv.appendChild(checkbox);
-          answersDiv.appendChild(label);
+          const wrapper = document.createElement("div");
+          wrapper.appendChild(checkbox);
+          wrapper.appendChild(label);
+          answersDiv.appendChild(wrapper);
         });
         const nextBtn = document.createElement("button");
         nextBtn.textContent = "Next";
@@ -160,11 +162,14 @@
       quiz.appendChild(div);
     }
 
-    function showResult() {...} // unchanged
-    function resetQuiz() {...} // unchanged
-    function shareResult(burrito) {...} // unchanged
+    function resetQuiz() {
+      currentQ = 0;
+      scores = {};
+      showQuestion();
+    }
 
     showQuestion();
   </script>
 </body>
 </html>
+
